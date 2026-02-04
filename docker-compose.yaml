@@ -1,0 +1,61 @@
+name: reading-list-tracker
+
+services: 
+  cassandra:
+   image: cassandra:4
+   container_name: cassandra-reading-tracker
+   volumes:
+    - ./docker/cassandra/data:/var/lib/cassandra
+   environment:
+      CASSANDRA_CLUSTER_NAME: "local-cassandra-tracker"
+      CASSANDRA_DC: "dc1"
+      CASSANDRA_RACK: "rack1"
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 128
+   ports:
+      - "9042:9042"
+   healthcheck:
+      test: [ "CMD", "cqlsh", "-u cassandra", "-p cassandra", "-e describe keyspaces" ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  cassandra-db-init:
+    container_name: cassandra-db-init
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    build: 
+      context: ./local-db-seed/
+    restart: "no"
+    environment:
+      - ENV=${ENV}
+
+  nestjs-reading-list-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN:
+    container_name: nestjs-reading-list-tracker
+    depends_on:
+        cassandra-db-init:
+          condition: service_completed_successfully
+    environment:
+        - HOST_ENDPOINT=localhost
+        - PORT=3000
+        - ENV=local
+        - SERVICE_NAME=nestjs-reading-list-tracker
+        - CASSANDRA_CONTACT_POINTS=cassandra
+        - CASSANDRA_KEYSPACE=reading_list_tracker
+        - CASSANDRA_LOCAL_DATA_CENTER=Local
+        - CASSANDRA_PORT=9042
+        - CASSANDRA_CLUSTER_NAME=local-cassandra-tracker
+        - CASSANDRA_DC=dc1
+        - CASSANDRA_RACK=rack1
+        - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+        - CASSANDRA_NUM_TOKENS=128
+        - SWAGGER_PATH=api/v1
+    ports:
+        - "3000:3000"
