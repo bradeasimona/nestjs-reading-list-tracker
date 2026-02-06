@@ -10,7 +10,7 @@ export const CassandraProvider: Provider = {
         process.env.CASSANDRA_CONTACT_POINTS || 'localhost',
       ],
       localDataCenter:
-        process.env.CASSANDRA_LOCAL_DATA_CENTER || 'dc1',
+        process.env.CASSANDRA_LOCAL_DATA_CENTER,
       keyspace: process.env.CASSANDRA_KEYSPACE,
     });
 

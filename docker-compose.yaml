@@ -49,7 +49,7 @@ services:
         - SERVICE_NAME=nestjs-reading-list-tracker
         - CASSANDRA_CONTACT_POINTS=cassandra
         - CASSANDRA_KEYSPACE=reading_list_tracker
-        - CASSANDRA_LOCAL_DATA_CENTER=Local
+        - CASSANDRA_LOCAL_DATA_CENTER=dc1
         - CASSANDRA_PORT=9042
         - CASSANDRA_CLUSTER_NAME=local-cassandra-tracker
         - CASSANDRA_DC=dc1
