@@ -21,14 +21,6 @@ export class BooksRepository implements OnModuleInit{
         Book: {
           tables: ['books'],
           mappings: new mapping.UnderscoreCqlToCamelCaseMappings(),
-          columns: { //colums este optional -> mappings rezolva deja problema -> columns = redundant aici
-            createdAt: {
-              name: 'created_at',
-            },
-            updatedAt:{
-              name: 'updated_at'
-            }
-          },
         },
       },
     };
@@ -48,56 +40,4 @@ export class BooksRepository implements OnModuleInit{
     return this.bookMapper.findAll();
   }
 }
-  /*sync create(book: any): Promise<BookEntity> {
-    const id = uuidv4();
-
-    const currentPage = 0;
-    const totalPages = book.totalPages;
-
-    const progress = Math.round((currentPage / totalPages) * 100);
-
-    await this.client.execute(
-      `
-      INSERT INTO books (
-        id, title, author, total_pages, current_page,
-        progress, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        id,
-        book.title,
-        book.author,
-        totalPages,
-        currentPage,
-        progress,
-        'READING',
-        new Date(),
-      ],
-      { prepare: true },
-    );
-
-    return {
-      id,
-      title: book.title,
-      author: book.author,
-      totalPages,
-      currentPage,
-      progress,
-      status: 'READING',
-      createdAt: new Date(),
-    };
-  }
-
-  async findAll() {
-    const result = await this.client.execute('SELECT * FROM books');
-    return result.rows;
-  }
-
-  async findById(id: string) {
-    const result = await this.client.execute(
-      'SELECT * FROM books WHERE id = ?',
-      [id],
-    );
-    return result.rows[0];
-  }*/
 
