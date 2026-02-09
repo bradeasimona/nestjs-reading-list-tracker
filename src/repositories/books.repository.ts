@@ -33,7 +33,7 @@ export class BooksRepository implements OnModuleInit{
   }
 
   async findBookById(id: string){
-    return await this.bookMapper.get({ id });
+    return this.bookMapper.get({ id });
   }
 
   async findAllBooks() {
