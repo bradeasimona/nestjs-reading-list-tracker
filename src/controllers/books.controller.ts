@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Param
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Param } from '@nestjs/common';
 import { BooksService } from '../services/books.service';
 import { CreateBookDto } from '../dtos/create-book.dto';
 import { ApiTags } from '@nestjs/swagger';

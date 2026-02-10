@@ -4,27 +4,25 @@ import { CreateBookDto } from '../dtos/create-book.dto';
 import { BookEntity } from '../entities/book.entity';
 import { v4 } from 'uuid';
 
-
 @Injectable()
 export class BooksService {
   constructor(private readonly repo: BooksRepository) {}
 
-createBook(dto: CreateBookDto) {
-  const book = new BookEntity({
-    id: v4(),
-    title: dto.title,
-    author: dto.author,
-    totalPages: dto.totalPages,
-    currentPage: 0,
-    status: 'READING',
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  createBook(dto: CreateBookDto) {
+    const book = new BookEntity({
+      id: v4(),
+      title: dto.title,
+      author: dto.author,
+      totalPages: dto.totalPages,
+      currentPage: 0,
+      status: 'READING',
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  return this.repo.createBook(book);
-}
-
+    return this.repo.createBook(book);
+  }
 
   findAllBooks() {
     return this.repo.findAllBooks();

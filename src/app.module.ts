@@ -9,6 +9,6 @@ import { ConfigModule } from '@nestjs/config';
     }),
     CassandraModule,
     BooksModule,
-  ]
+  ],
 })
 export class AppModule {}

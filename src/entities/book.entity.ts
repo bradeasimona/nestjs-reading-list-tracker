@@ -15,4 +15,3 @@ export class BookEntity {
     Object.assign(this, data);
   }
 }
-
