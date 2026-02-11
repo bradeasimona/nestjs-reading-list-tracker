@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { BooksRepository } from '../repositories/books.repository';
 import { CreateBookDto } from '../dtos/create-book.dto';
-import { BookEntity } from '../entities/book.entity';
+import { BookEntity, BookStatus } from '../entities/book.entity';
 import { v4 } from 'uuid';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class BooksService {
       author: dto.author,
       totalPages: dto.totalPages,
       currentPage: 0,
-      status: 'READING',
+      status: BookStatus.READING,
       progress: 0,
       createdAt: new Date(),
       updatedAt: new Date(),

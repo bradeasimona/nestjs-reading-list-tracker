@@ -40,7 +40,8 @@ export class BooksRepository implements OnModuleInit {
     return this.bookMapper.get({ id });
   }
 
-  async findAllBooks() {
-    return this.bookMapper.findAll();
+  async findAllBooks(): Promise<BookEntity[]> {
+    const books = await this.bookMapper.findAll();
+    return books.toArray();
   }
 }

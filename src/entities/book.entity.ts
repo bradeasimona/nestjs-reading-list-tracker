@@ -1,12 +1,15 @@
-export type StatusType = 'READING' | 'FINISHED';
-
+export enum BookStatus {
+  READING = 'READING',
+  PAUSED = 'PAUSED',
+  FINISHED = 'FINISHED'
+}
 export class BookEntity {
   id!: string;
   title!: string;
   author!: string;
   totalPages!: number;
   currentPage!: number;
-  status!: StatusType;
+  status!: BookStatus;
   progress!: number;
   createdAt!: Date;
   updatedAt!: Date;
