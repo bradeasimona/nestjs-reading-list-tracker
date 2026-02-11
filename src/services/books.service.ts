@@ -8,7 +8,7 @@ import { v4 } from 'uuid';
 export class BooksService {
   constructor(private readonly repo: BooksRepository) {}
 
-  createBook(dto: CreateBookDto) {
+  async createBook(dto: CreateBookDto) {
     const book = new BookEntity({
       id: v4(),
       title: dto.title,
@@ -24,7 +24,7 @@ export class BooksService {
     return this.repo.createBook(book);
   }
 
-  findAllBooks() {
+  async findAllBooks() {
     return this.repo.findAllBooks();
   }
 

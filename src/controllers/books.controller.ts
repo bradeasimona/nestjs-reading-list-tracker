@@ -11,21 +11,21 @@ export class BooksController {
   @Post()
   @ApiResponse({ status: HttpStatus.OK, description: 'Book successfully created' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request'})
-  createBook(@Body() dto: CreateBookDto) {
+  async createBook(@Body() dto: CreateBookDto) {
     return this.service.createBook(dto);
   }
 
   @Get()
   @ApiResponse({ status: HttpStatus.OK, description: 'List of books' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Books not found' })
-  findAllBooks() {
+  async findAllBooks() {
     return this.service.findAllBooks();
   }
 
   @Get(':id')
   @ApiResponse({ status: HttpStatus.OK, description: 'Book found' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 }
