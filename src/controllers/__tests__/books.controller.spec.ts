@@ -124,4 +124,14 @@ describe('BooksController', () => {
       expect(result).toEqual({ id: '1', title: 'Test' });
     });
   });
+
+  describe('deleteBook', () => {
+    it('should call deleteBook with the correct id', async () => {
+      service.deleteBook.mockResolvedValue(undefined);
+
+      await controller.deleteBook('1');
+
+      expect(service.deleteBook).toHaveBeenCalledWith('1');
+    });
+  });
 });

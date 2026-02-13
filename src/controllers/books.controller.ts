@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   HttpStatus,
 } from '@nestjs/common';
@@ -40,10 +41,17 @@ export class BooksController {
     return this.service.findOne(id);
   }
 
-  @ApiResponse({ status: HttpStatus.OK, description: 'ok' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Book updated' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
   @Patch(':id')
   async updateBook(@Param('id') id: string, @Body() dto: UpdateBookDto) {
     return this.service.updateBook(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Book deleted' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
+  async deleteBook(@Param('id') id: string) {
+    await this.service.deleteBook(id);
   }
 }

@@ -51,4 +51,8 @@ export class BooksRepository implements OnModuleInit {
       ...update,
     });
   }
+
+  async deleteBook(id: string) {
+    await this.bookMapper.remove({ id });
+  }
 }

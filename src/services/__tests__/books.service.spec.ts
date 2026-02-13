@@ -18,6 +18,7 @@ describe('BooksService', () => {
     findAllBooks: jest.fn(),
     findBookById: jest.fn(),
     updateBook: jest.fn(),
+    deleteBook: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -217,6 +218,34 @@ describe('BooksService', () => {
           status: BookStatus.FINISHED,
         }),
       );
+    });
+  });
+
+  describe('deleteBook', () => {
+    it('should delete book if it exists', async () => {
+      const book = new BookEntity({
+        id: '1',
+        title: 'Test',
+        author: 'John Doe',
+        totalPages: 100,
+        currentPage: 0,
+        status: BookStatus.NOT_STARTED,
+        progress: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      mockBooksRepository.findBookById.mockResolvedValue(book);
+
+      await service.deleteBook('1');
+
+      expect(mockBooksRepository.deleteBook).toHaveBeenCalledWith('1');
+    });
+
+    it('should throw NotFoundException if book does not exist', async () => {
+      mockBooksRepository.findBookById.mockResolvedValue(null);
+
+      await expect(service.deleteBook('1')).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -17,6 +17,7 @@ describe('BooksRepository', () => {
     get: jest.fn(),
     findAll: jest.fn(),
     update: jest.fn(),
+    remove: jest.fn(),
   };
 
   const mockCassandraClient = {
@@ -92,6 +93,14 @@ describe('BooksRepository', () => {
         id: '1',
         ...update,
       });
+    });
+  });
+
+  describe('deleteBook', () => {
+    it('should delete a book', async () => {
+      await repository.deleteBook('1');
+
+      expect(mockMapper.remove).toHaveBeenCalledWith({ id: '1' });
     });
   });
 });
