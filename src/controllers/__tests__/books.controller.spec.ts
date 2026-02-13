@@ -6,8 +6,8 @@ import { createMock, DeepMocked } from '@golevelup/ts-jest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BooksController } from '../books.controller';
 import { BooksService } from '../../services/books.service';
-import { CreateBookDto } from '../../dtos/create-book.dto';
-import { BookEntity } from '../../entities/book.entity';
+import { CreateBookDto } from '../../dtos/book.dto';
+import { BookEntity, BookStatus } from '../../entities/book.entity';
 
 describe('BooksController', () => {
   let controller: BooksController;
@@ -62,7 +62,7 @@ describe('BooksController', () => {
           author: 'john doe',
           totalPages: 300,
           currentPage: 10,
-          status: 'READING',
+          status: BookStatus.READING,
           progress: 3,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -73,7 +73,7 @@ describe('BooksController', () => {
           author: 'john doe',
           totalPages: 300,
           currentPage: 300,
-          status: 'FINISHED',
+          status: BookStatus.FINISHED,
           progress: 100,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -109,6 +109,19 @@ describe('BooksController', () => {
 
       expect(service.findOne).toHaveBeenCalledWith('1');
       expect(result).toBe(mockedBook);
+    });
+  });
+
+  describe('updateBook', () => {
+    it('should call updateBook from service', async () => {
+      const dto = { title: 'Test' };
+
+      service.updateBook.mockResolvedValue({ id: '1', title: 'Test' } as any);
+
+      const result = await controller.updateBook('1', dto as any);
+
+      expect(service.updateBook).toHaveBeenCalledWith('1', dto);
+      expect(result).toEqual({ id: '1', title: 'Test' });
     });
   });
 });

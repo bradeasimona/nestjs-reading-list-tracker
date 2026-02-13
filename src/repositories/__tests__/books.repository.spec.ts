@@ -16,6 +16,7 @@ describe('BooksRepository', () => {
     insert: jest.fn(),
     get: jest.fn(),
     findAll: jest.fn(),
+    update: jest.fn(),
   };
 
   const mockCassandraClient = {
@@ -45,30 +46,52 @@ describe('BooksRepository', () => {
     repository.onModuleInit();
   });
 
-  it('should insert a book - test for ', async () => {
-    const book = {} as BookEntity;
+  describe('createBook', () => {
+    it('should insert a book - test for ', async () => {
+      const book = {} as BookEntity;
 
-    await repository.createBook(book);
+      await repository.createBook(book);
 
-    expect(mockMapper.insert).toHaveBeenCalledWith(book);
+      expect(mockMapper.insert).toHaveBeenCalledWith(book);
+    });
   });
 
-  it('should get a book by id', async () => {
-    const book = {} as BookEntity;
+  describe('findOne', () => {
+    it('should get a book by id', async () => {
+      const book = {} as BookEntity;
 
-    mockMapper.get.mockResolvedValue(book);
+      mockMapper.get.mockResolvedValue(book);
 
-    const result = await repository.findBookById('1');
+      const result = await repository.findBookById('1');
 
-    expect(result).toBe(book);
+      expect(result).toBe(book);
+    });
   });
 
-  it('should return all books', async () => {
-    const books = [{} as BookEntity];
-    mockMapper.findAll.mockResolvedValue(books);
+  describe('findAllBooks', () => {
+    it('should return all books', async () => {
+      const books = [{} as BookEntity];
 
-    const result = await repository.findAllBooks();
+      mockMapper.findAll.mockResolvedValue({
+        toArray: () => books,
+      });
 
-    expect(result).toBe(books);
+      const result = await repository.findAllBooks();
+
+      expect(result).toBe(books);
+    });
+  });
+
+  describe('updateBook', () => {
+    it('should update a book', async () => {
+      const update = { title: 'Test' };
+
+      await repository.updateBook('1', update);
+
+      expect(mockMapper.update).toHaveBeenCalledWith({
+        id: '1',
+        ...update,
+      });
+    });
   });
 });

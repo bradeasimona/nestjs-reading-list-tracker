@@ -1,6 +1,14 @@
-import { Body, Controller, Get, Post, Param, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  HttpStatus,
+} from '@nestjs/common';
 import { BooksService } from '../services/books.service';
-import { CreateBookDto } from '../dtos/create-book.dto';
+import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Books')
@@ -9,8 +17,11 @@ export class BooksController {
   constructor(private readonly service: BooksService) {}
 
   @Post()
-  @ApiResponse({ status: HttpStatus.OK, description: 'Book successfully created' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request'})
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Book successfully created',
+  })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
   async createBook(@Body() dto: CreateBookDto) {
     return this.service.createBook(dto);
   }
@@ -27,5 +38,12 @@ export class BooksController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
   async findOne(@Param('id') id: string) {
     return this.service.findOne(id);
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'ok' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
+  @Patch(':id')
+  async updateBook(@Param('id') id: string, @Body() dto: UpdateBookDto) {
+    return this.service.updateBook(id, dto);
   }
 }

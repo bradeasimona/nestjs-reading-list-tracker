@@ -13,8 +13,8 @@ describe('checkCassandraConnection', () => {
   it('should throw an error if cassandra client has no connect method', () => {
     const client = {} as Client;
 
-    expect(() =>
-      checkCassandraConnection(client),
-    ).toThrow('Cassandra client not connected!');
+    expect(() => checkCassandraConnection(client)).toThrow(
+      'Cassandra client not connected!',
+    );
   });
 });
