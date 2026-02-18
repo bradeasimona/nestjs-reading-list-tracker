@@ -1,7 +1,8 @@
 export enum BookStatus {
+  NOT_STARTED = 'NOT_STARTED',
   READING = 'READING',
   PAUSED = 'PAUSED',
-  FINISHED = 'FINISHED'
+  FINISHED = 'FINISHED',
 }
 export class BookEntity {
   id!: string;

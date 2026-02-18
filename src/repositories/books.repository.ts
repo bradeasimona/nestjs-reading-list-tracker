@@ -44,4 +44,15 @@ export class BooksRepository implements OnModuleInit {
     const books = await this.bookMapper.findAll();
     return books.toArray();
   }
+
+  async updateBook(id: string, update: Partial<BookEntity>) {
+    await this.bookMapper.update({
+      id,
+      ...update,
+    });
+  }
+
+  async deleteBook(id: string) {
+    await this.bookMapper.remove({ id });
+  }
 }
