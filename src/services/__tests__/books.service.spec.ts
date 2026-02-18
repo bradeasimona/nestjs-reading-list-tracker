@@ -11,17 +11,31 @@ import { BookEntity, BookStatus } from '../../entities/book.entity';
 
 describe('BooksService', () => {
   let service: BooksService;
-  let repo: BooksRepository;
+  let repo: jest.Mocked<BooksRepository>;
 
-  const mockBooksRepository = {
-    createBook: jest.fn(),
-    findAllBooks: jest.fn(),
-    findBookById: jest.fn(),
-    updateBook: jest.fn(),
-    deleteBook: jest.fn(),
-  };
+  const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
+    new BookEntity({
+      id: '1',
+      title: 'Test',
+      author: 'John Doe',
+      totalPages: 100,
+      currentPage: 0,
+      status: BookStatus.NOT_STARTED,
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    });
 
-  beforeEach(async () => {
+  beforeEach(async () => {    
+    const mockBooksRepository: jest.Mocked<BooksRepository> = {
+      createBook: jest.fn(),
+      findAllBooks: jest.fn(),
+      findBookById: jest.fn(),
+      updateBook: jest.fn(),
+      deleteBook: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BooksService,
@@ -33,48 +47,57 @@ describe('BooksService', () => {
     }).compile();
 
     service = module.get<BooksService>(BooksService);
-    repo = module.get<BooksRepository>(BooksRepository);
+    repo = module.get(BooksRepository);
+
+    jest.clearAllMocks();
   });
+
   describe('createBook', () => {
-    it('should create a book entity', () => {
+    it('should create a new book', async () => {
       const dto: CreateBookDto = {
         title: 'Test',
         author: 'john doe',
         totalPages: 300,
       };
 
-      service.createBook(dto);
+      await service.createBook(dto);
 
       expect(repo.createBook).toHaveBeenCalled();
-      const createdBook = mockBooksRepository.createBook.mock.calls[0][0];
+      const createdBook = repo.createBook.mock.calls[0][0];
       expect(createdBook).toBeInstanceOf(BookEntity);
       expect(createdBook.title).toBe(dto.title);
     });
   });
 
   describe('findAllBooks', () => {
-    it('should return all books', () => {
-      service.findAllBooks();
+    it('should return all books', async () => {
+      const books = [
+        createBookEntity({ id: '1' }),
+        createBookEntity({ id: '2' }),
+      ];
+
+      repo.findAllBooks.mockResolvedValueOnce(books);
+
+      const result = await service.findAllBooks();
 
       expect(repo.findAllBooks).toHaveBeenCalled();
+      expect(result).toBe(books);
+    });
+
+    it('should return an empty arrray if no books exist', async () => {
+      repo.findAllBooks.mockResolvedValueOnce([]);
+
+      const result = await service.findAllBooks();
+
+      expect(result).toEqual([]);
     });
   });
 
   describe('findOne', () => {
     it('should return a book if found', async () => {
-      const book = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'john doe',
-        totalPages: 100,
-        currentPage: 0,
-        status: BookStatus.READING,
-        progress: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      const book = createBookEntity();
 
-      mockBooksRepository.findBookById.mockResolvedValue(book);
+      repo.findBookById.mockResolvedValueOnce(book);
 
       const result = await service.findOne('1');
 
@@ -82,7 +105,7 @@ describe('BooksService', () => {
     });
 
     it('should throw NotFoundException if book is not found', async () => {
-      mockBooksRepository.findBookById.mockResolvedValue(null);
+      repo.findBookById.mockResolvedValueOnce(null);
 
       await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
@@ -90,7 +113,7 @@ describe('BooksService', () => {
 
   describe('updateBook', () => {
     it('should throw NotFoundException if the book was not found', async () => {
-      mockBooksRepository.findBookById.mockResolvedValue(null);
+      repo.findBookById.mockResolvedValueOnce(null);
 
       await expect(service.updateBook('1', { title: 'Test' })).rejects.toThrow(
         NotFoundException,
@@ -98,19 +121,9 @@ describe('BooksService', () => {
     });
 
     it('should throw BadRequestException if currentPage is decreased', async () => {
-      const existingBook = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John Doe',
-        totalPages: 100,
-        currentPage: 50,
-        status: BookStatus.READING,
-        progress: 50,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockBooksRepository.findBookById.mockResolvedValue(existingBook);
+      repo.findBookById.mockResolvedValueOnce(
+        createBookEntity({ currentPage: 50 }),
+      );
 
       await expect(
         service.updateBook('1', { currentPage: 40 }),
@@ -118,72 +131,43 @@ describe('BooksService', () => {
     });
 
     it('should throw BadRequestException if currentPage exceeds totalPages', async () => {
-      const existingBook = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John Doe',
-        totalPages: 100,
-        currentPage: 50,
-        status: BookStatus.READING,
-        progress: 50,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockBooksRepository.findBookById.mockResolvedValue(existingBook);
+      repo.findBookById.mockResolvedValueOnce(createBookEntity());
 
       await expect(
         service.updateBook('1', { currentPage: 150 }),
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('should throw BadRequestException if totalPages is updated to be less than currentPage', async () => {
+      repo.findBookById.mockResolvedValueOnce(createBookEntity({ currentPage: 90 }));
+
+      await expect(
+        service.updateBook('1', { totalPages: 75 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('should only update title without recalculating progress', async () => {
-      const existingBook = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John',
-        totalPages: 100,
-        currentPage: 50,
-        status: BookStatus.READING,
-        progress: 50,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      repo.findBookById.mockResolvedValueOnce(createBookEntity());
 
-      mockBooksRepository.findBookById
-        .mockResolvedValueOnce(existingBook)
-        .mockResolvedValueOnce({ ...existingBook, title: 'New Test' });
+      const result = await service.updateBook('1', { title: 'New Test' });
 
-      await service.updateBook('1', { title: 'New Test' });
-
-      expect(mockBooksRepository.updateBook).toHaveBeenCalledWith(
+      expect(repo.updateBook).toHaveBeenCalledWith(
         '1',
         expect.objectContaining({
           title: 'New Test',
         }),
       );
+      expect(result.progress).toBe(0);
+      expect(result.status).toBe(BookStatus.NOT_STARTED);
+
     });
 
     it('should calculate progress and set status to READING', async () => {
-      const existingBook = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John Doe',
-        totalPages: 100,
-        currentPage: 20,
-        status: BookStatus.READING,
-        progress: 20,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockBooksRepository.findBookById
-        .mockResolvedValueOnce(existingBook)
-        .mockResolvedValueOnce(existingBook);
+      repo.findBookById.mockResolvedValueOnce(createBookEntity());
 
       await service.updateBook('1', { currentPage: 50 });
 
-      expect(mockBooksRepository.updateBook).toHaveBeenCalledWith(
+      expect(repo.updateBook).toHaveBeenCalledWith(
         '1',
         expect.objectContaining({
           progress: 50,
@@ -193,25 +177,11 @@ describe('BooksService', () => {
     });
 
     it('should set status to FINISHED when currentPage equals totalPages', async () => {
-      const existingBook = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John Doe',
-        totalPages: 100,
-        currentPage: 90,
-        status: BookStatus.READING,
-        progress: 90,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockBooksRepository.findBookById
-        .mockResolvedValueOnce(existingBook)
-        .mockResolvedValueOnce(existingBook);
+      repo.findBookById.mockResolvedValueOnce(createBookEntity());
 
       await service.updateBook('1', { currentPage: 100 });
 
-      expect(mockBooksRepository.updateBook).toHaveBeenCalledWith(
+      expect(repo.updateBook).toHaveBeenCalledWith(
         '1',
         expect.objectContaining({
           progress: 100,
@@ -219,31 +189,33 @@ describe('BooksService', () => {
         }),
       );
     });
+
+    it('should set status to NOT_STARTED when currentPage equals 0', async () => {
+      repo.findBookById.mockResolvedValueOnce(createBookEntity({ currentPage: 90 }))
+
+      await service.updateBook('1', { currentPage: 0 });
+
+      expect(repo.updateBook).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({
+          progress: 0,
+          status: BookStatus.NOT_STARTED,
+        }),
+      );
+    });
   });
 
   describe('deleteBook', () => {
     it('should delete book if it exists', async () => {
-      const book = new BookEntity({
-        id: '1',
-        title: 'Test',
-        author: 'John Doe',
-        totalPages: 100,
-        currentPage: 0,
-        status: BookStatus.NOT_STARTED,
-        progress: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      mockBooksRepository.findBookById.mockResolvedValue(book);
+      repo.findBookById.mockResolvedValueOnce(createBookEntity());
 
       await service.deleteBook('1');
 
-      expect(mockBooksRepository.deleteBook).toHaveBeenCalledWith('1');
+      expect(repo.deleteBook).toHaveBeenCalledWith('1');
     });
 
     it('should throw NotFoundException if book does not exist', async () => {
-      mockBooksRepository.findBookById.mockResolvedValue(null);
+      repo.findBookById.mockResolvedValueOnce(null);
 
       await expect(service.deleteBook('1')).rejects.toThrow(NotFoundException);
     });

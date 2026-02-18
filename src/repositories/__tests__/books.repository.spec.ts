@@ -48,7 +48,7 @@ describe('BooksRepository', () => {
   });
 
   describe('createBook', () => {
-    it('should insert a book - test for ', async () => {
+    it('should insert a book', async () => {
       const book = {} as BookEntity;
 
       await repository.createBook(book);

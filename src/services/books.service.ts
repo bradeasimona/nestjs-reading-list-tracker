@@ -47,26 +47,46 @@ export class BooksService {
       throw new NotFoundException('Book not found');
     }
 
+    const finalTotalPages = dto.totalPages ?? existingBook.totalPages;
+
+    if (
+      dto.totalPages !== undefined &&
+      dto.totalPages < existingBook.currentPage
+    ) {
+      throw new BadRequestException(
+        'Total pages cannot be less than current page',
+      );
+    }
+
     const updatedBookDetails: Partial<BookEntity> = {
       ...dto,
       updatedAt: new Date(),
     };
 
     if (dto.currentPage !== undefined) {
-      this.validateCurrentPageUpdate(dto.currentPage, existingBook);
+      this.validateDecreaseCurrentPage(
+        dto.currentPage,
+        existingBook.currentPage,
+      );
+      this.validateCurrentPageLimit(dto.currentPage, finalTotalPages);
 
       const { progress, status } = this.calculateProgressAndStatus(
         dto.currentPage,
-        dto.totalPages ?? existingBook.totalPages,
+        finalTotalPages,
       );
 
       updatedBookDetails.progress = progress;
       updatedBookDetails.status = status;
     }
 
+    const updatedBook = new BookEntity({
+      ...existingBook,
+      ...updatedBookDetails,
+    });
+
     await this.repo.updateBook(id, updatedBookDetails);
 
-    return this.repo.findBookById(id);
+    return updatedBook;
   }
 
   async deleteBook(id: string) {
@@ -79,15 +99,17 @@ export class BooksService {
     await this.repo.deleteBook(id);
   }
 
-  private validateCurrentPageUpdate(
+  private validateDecreaseCurrentPage(
     newCurrentPage: number,
-    existingBook: BookEntity,
+    currentPage: number,
   ) {
-    if (newCurrentPage < existingBook.currentPage) {
+    if (newCurrentPage !== 0 && newCurrentPage < currentPage) {
       throw new BadRequestException('Cannot decrease current page');
     }
+  }
 
-    if (newCurrentPage > existingBook.totalPages) {
+  private validateCurrentPageLimit(newCurrentPage: number, totalPages: number) {
+    if (newCurrentPage > totalPages) {
       throw new BadRequestException('Current page cannot exceed total pages');
     }
   }
@@ -96,7 +118,7 @@ export class BooksService {
     newCurrentPage: number,
     totalPages: number,
   ) {
-    const progress = Math.floor((newCurrentPage / totalPages) * 100);
+    const progress = Math.round((newCurrentPage / totalPages) * 100);
 
     let status: BookStatus;
 

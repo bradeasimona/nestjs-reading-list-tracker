@@ -7,6 +7,7 @@ import {
   Delete,
   Param,
   HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { BooksService } from '../services/books.service';
 import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
@@ -18,8 +19,9 @@ export class BooksController {
   constructor(private readonly service: BooksService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: 'Book successfully created',
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
@@ -41,14 +43,16 @@ export class BooksController {
     return this.service.findOne(id);
   }
 
+  @Patch(':id')
   @ApiResponse({ status: HttpStatus.OK, description: 'Book updated' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
-  @Patch(':id')
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
   async updateBook(@Param('id') id: string, @Body() dto: UpdateBookDto) {
     return this.service.updateBook(id, dto);
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Book deleted' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
   async deleteBook(@Param('id') id: string) {
