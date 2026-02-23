@@ -1,4 +1,11 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateBookDto {
@@ -8,8 +15,8 @@ export class CreateBookDto {
   title: string;
 
   @ApiProperty()
-  @IsString()
-  author: string;
+  @IsUUID()
+  authorId: string;
 
   @ApiProperty()
   @IsInt()

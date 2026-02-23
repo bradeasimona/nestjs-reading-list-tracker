@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BooksRepository } from '../books.repository';
 import { CASSANDRA_CLIENT } from '../../modules/cassandra/cassandra.constants';
 import { Client } from 'cassandra-driver';
-import { BookEntity } from '../../entities/book.entity';
+import { BookEntity, BookStatus } from '../../entities/book.entity';
 
 jest.mock('../../utils', () => ({
   checkCassandraConnection: jest.fn(),
@@ -24,7 +24,23 @@ describe('BooksRepository', () => {
     connect: jest.fn(),
   };
 
+  const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
+    new BookEntity({
+      id: '2288421b-3de3-4431-8f41-145766da4f3b',
+      title: 'Test',
+      authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      totalPages: 100,
+      currentPage: 0,
+      status: BookStatus.NOT_STARTED,
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    });
+
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     jest
       .spyOn(require('cassandra-driver').mapping, 'Mapper')
       .mockImplementation(() => ({
@@ -49,7 +65,7 @@ describe('BooksRepository', () => {
 
   describe('createBook', () => {
     it('should insert a book', async () => {
-      const book = {} as BookEntity;
+      const book = createBookEntity();
 
       await repository.createBook(book);
 
@@ -57,21 +73,29 @@ describe('BooksRepository', () => {
     });
   });
 
-  describe('findOne', () => {
+  describe('findBookById', () => {
     it('should get a book by id', async () => {
-      const book = {} as BookEntity;
+      const book = createBookEntity();
 
       mockMapper.get.mockResolvedValue(book);
 
-      const result = await repository.findBookById('1');
+      const result = await repository.findBookById(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+      );
 
+      expect(mockMapper.get).toHaveBeenCalledWith({
+        id: '2288421b-3de3-4431-8f41-145766da4f3b',
+      });
       expect(result).toBe(book);
     });
   });
 
   describe('findAllBooks', () => {
     it('should return all books', async () => {
-      const books = [{} as BookEntity];
+      const books = [
+        createBookEntity(),
+        createBookEntity({ id: '7288421b-3de3-4431-8f41-145766da4f3b' }),
+      ];
 
       mockMapper.findAll.mockResolvedValue({
         toArray: () => books,
@@ -79,18 +103,22 @@ describe('BooksRepository', () => {
 
       const result = await repository.findAllBooks();
 
+      expect(mockMapper.findAll).toHaveBeenCalled();
       expect(result).toBe(books);
     });
   });
 
   describe('updateBook', () => {
     it('should update a book', async () => {
-      const update = { title: 'Test' };
+      const update = { title: 'Test - updated' };
 
-      await repository.updateBook('1', update);
+      await repository.updateBook(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+        update,
+      );
 
       expect(mockMapper.update).toHaveBeenCalledWith({
-        id: '1',
+        id: '2288421b-3de3-4431-8f41-145766da4f3b',
         ...update,
       });
     });
@@ -98,9 +126,11 @@ describe('BooksRepository', () => {
 
   describe('deleteBook', () => {
     it('should delete a book', async () => {
-      await repository.deleteBook('1');
+      await repository.deleteBook('2288421b-3de3-4431-8f41-145766da4f3b');
 
-      expect(mockMapper.remove).toHaveBeenCalledWith({ id: '1' });
+      expect(mockMapper.remove).toHaveBeenCalledWith({
+        id: '2288421b-3de3-4431-8f41-145766da4f3b',
+      });
     });
   });
 });

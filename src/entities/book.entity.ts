@@ -7,7 +7,7 @@ export enum BookStatus {
 export class BookEntity {
   id!: string;
   title!: string;
-  author!: string;
+  authorId!: string;
   totalPages!: number;
   currentPage!: number;
   status!: BookStatus;
