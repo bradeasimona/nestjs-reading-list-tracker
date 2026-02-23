@@ -38,4 +38,13 @@ export class AuthorsRepository implements OnModuleInit {
   async createAuthor(author: AuthorEntity) {
     await this.authorMapper.insert(author);
   }
+
+  async findAllAuthors(): Promise<AuthorEntity[]> {
+    const authors = await this.authorMapper.findAll();
+    return authors.toArray();
+  }
+  
+  async findAuthorById(id: string) {
+    return this.authorMapper.get({ id });
+  }
 }
