@@ -83,6 +83,14 @@ describe('BooksController', () => {
       expect(service.findAllBooks).toHaveBeenCalled();
       expect(result).toBe(mockedBooks);
     });
+
+    it('should return empty array if no books exist', async () => {
+      service.findAllBooks.mockResolvedValue([]);
+
+      const result = await controller.findAllBooks();
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('findOne', () => {

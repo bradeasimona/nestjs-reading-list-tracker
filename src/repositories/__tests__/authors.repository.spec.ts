@@ -14,6 +14,8 @@ describe('AuthorsRepository', () => {
 
   const mockMapper = {
     insert: jest.fn(),
+    findAll: jest.fn(),
+    get: jest.fn(),
   };
 
   const mockCassandraClient = {
@@ -67,4 +69,35 @@ describe('AuthorsRepository', () => {
       expect(mockMapper.insert).toHaveBeenCalledWith(author);
     });
   });
+
+  describe('findAllAuthors', () => {
+    it('should return all authors', async () => {
+      const authors = [
+        createAuthorEntity({ id: 'k2d033de-f3ca-4092-84f7-f5761da6f04d' }),
+        createAuthorEntity({ id: 'l8d033de-f3ca-4092-84f7-f5761da6f04d' }),
+      ];
+
+      mockMapper.findAll.mockResolvedValue({
+        toArray: () => authors,
+      });
+
+      const result = await repository.findAllAuthors();
+
+      expect(mockMapper.findAll).toHaveBeenCalled();
+      expect(result).toBe(authors);
+    });
+  });
+
+  describe('findAuthorById', () => {
+    it('should get an author by id', async () => {
+      const author = createAuthorEntity();
+
+      mockMapper.get.mockResolvedValue(author);
+
+      const result = await repository.findAuthorById('c1d033de-f3ca-4092-84f7-f5761da6f04d');
+
+      expect(mockMapper.get).toHaveBeenCalledWith({ id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d' });
+      expect(result).toBe(author);
+    })
+  })
 });

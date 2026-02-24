@@ -21,15 +21,15 @@ export class AuthorsService {
     return this.repo.createAuthor(author);
   }
 
-    async findAllAuthors() {
-      return this.repo.findAllAuthors();
+  async findAllAuthors() {
+    return this.repo.findAllAuthors();
+  }
+
+  async findAuthor(id: string) {
+    const author = await this.repo.findAuthorById(id);
+    if (!author) {
+      throw new NotFoundException('Author not found');
     }
-  
-    async findAuthor(id: string) {
-      const author = await this.repo.findAuthorById(id);
-      if (!author) {
-        throw new NotFoundException('Author not found');
-      }
-      return author;
-    }
+    return author;
+  }
 }

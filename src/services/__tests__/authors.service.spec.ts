@@ -5,8 +5,9 @@ jest.mock('uuid', () => ({
 import { AuthorEntity } from '../../entities/author.entity';
 import { AuthorsRepository } from '../../repositories/authors.repository';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthorsService } from '../authors.service';
+import { AuthorsService } from '../../services/authors.service';
 import { CreateAuthorDto } from '../../dtos/author.dto';
+import { NotFoundException } from '@nestjs/common';
 
 describe('AuthorService', () => {
   let service: AuthorsService;
@@ -28,6 +29,8 @@ describe('AuthorService', () => {
   beforeEach(async () => {
     const mockAuthorsRepository: jest.Mocked<AuthorsRepository> = {
       createAuthor: jest.fn(),
+      findAllAuthors: jest.fn(),
+      findAuthorById: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -66,6 +69,52 @@ describe('AuthorService', () => {
       expect(createdAuthor.id).toBe('mocked-uuid');
       expect(createdAuthor.firstName).toBe(dto.firstName);
       expect(createdAuthor.dateOfBirth).toBeInstanceOf(Date);
+    });
+  });
+
+  describe('findAllAuthors', () => {
+    it('should return all authors', async () => {
+      const authors = [
+        createAuthorEntity({ id: 'k2d033de-f3ca-4092-84f7-f5761da6f04d' }),
+        createAuthorEntity({ id: 'l8d033de-f3ca-4092-84f7-f5761da6f04d' }),
+      ];
+
+      repo.findAllAuthors.mockResolvedValueOnce(authors);
+
+      const result = await service.findAllAuthors();
+
+      expect(repo.findAllAuthors).toHaveBeenCalled();
+      expect(result).toBe(authors);
+    });
+
+    it('should return an empty array if no authors exist', async () => {
+      repo.findAllAuthors.mockResolvedValueOnce([]);
+
+      const result = await service.findAllAuthors();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('findAuthor', () => {
+    it('should return an author if found', async () => {
+      const author = createAuthorEntity();
+
+      repo.findAuthorById.mockResolvedValueOnce(author);
+
+      const result = await service.findAuthor(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      );
+
+      expect(result).toBe(author);
+    });
+
+    it('should throw NotFoundException if author is not found', async () => {
+      repo.findAuthorById.mockResolvedValueOnce(null);
+
+      await expect(
+        service.findAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

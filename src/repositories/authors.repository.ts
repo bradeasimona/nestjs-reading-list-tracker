@@ -43,7 +43,7 @@ export class AuthorsRepository implements OnModuleInit {
     const authors = await this.authorMapper.findAll();
     return authors.toArray();
   }
-  
+
   async findAuthorById(id: string) {
     return this.authorMapper.get({ id });
   }
