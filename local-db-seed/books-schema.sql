@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS reading_list_tracker.books (
   id UUID,
   title TEXT,
-  author TEXT,
+  author_id UUID,
   total_pages INT,
   current_page INT,
   progress INT,

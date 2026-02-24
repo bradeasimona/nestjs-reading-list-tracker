@@ -16,7 +16,7 @@ export class BooksService {
     const book = new BookEntity({
       id: v4(),
       title: dto.title,
-      author: dto.author,
+      authorId: dto.authorId,
       totalPages: dto.totalPages,
       currentPage: 0,
       status: BookStatus.NOT_STARTED,

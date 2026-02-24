@@ -8,10 +8,25 @@ import { BooksController } from '../books.controller';
 import { BooksService } from '../../services/books.service';
 import { CreateBookDto } from '../../dtos/book.dto';
 import { BookEntity, BookStatus } from '../../entities/book.entity';
+import { NotFoundException } from '@nestjs/common';
 
 describe('BooksController', () => {
   let controller: BooksController;
   let service: DeepMocked<BooksService>;
+
+  const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
+    new BookEntity({
+      id: '2288421b-3de3-4431-8f41-145766da4f3b',
+      title: 'Test',
+      authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      totalPages: 100,
+      currentPage: 0,
+      status: BookStatus.NOT_STARTED,
+      progress: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    });
 
   beforeEach(async () => {
     service = createMock<BooksService>();
@@ -30,19 +45,14 @@ describe('BooksController', () => {
   });
 
   describe('createBook', () => {
-    it('should create a book and return result', async () => {
+    it('should create a book and return the result', async () => {
       const dto: CreateBookDto = {
         title: 'Test',
-        author: 'john doe',
+        authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
         totalPages: 300,
       };
 
-      const mockedResult = {
-        id: 'mocked-id',
-        title: dto.title,
-        author: dto.author,
-        totalPages: dto.totalPages,
-      };
+      const mockedResult = createBookEntity();
 
       service.createBook.mockResolvedValue(mockedResult as any);
 
@@ -55,28 +65,14 @@ describe('BooksController', () => {
 
   describe('findAllBooks', () => {
     it('should return all books', async () => {
-      const mockedBooks: any = [
-        new BookEntity({
-          id: '1',
-          title: 'Test1',
-          author: 'john doe',
-          totalPages: 300,
-          currentPage: 10,
+      const mockedBooks: BookEntity[] = [
+        createBookEntity({
+          id: '2288421b-3de3-4431-8f41-145766da4f3b',
           status: BookStatus.READING,
-          progress: 3,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         }),
-        new BookEntity({
-          id: '2',
-          title: 'Test2',
-          author: 'john doe',
-          totalPages: 300,
-          currentPage: 300,
+        createBookEntity({
+          id: '7288421b-3de3-4431-8f41-145766da4f3b',
           status: BookStatus.FINISHED,
-          progress: 100,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         }),
       ];
 
@@ -91,37 +87,46 @@ describe('BooksController', () => {
 
   describe('findOne', () => {
     it('should return a book by id', async () => {
-      const mockedBook = {
-        id: '1',
-        title: 'Test',
-        author: 'john doe',
-        totalPages: 100,
-        currentPage: 0,
-        status: 'READING',
-        progress: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as any;
+      const mockedBook = createBookEntity();
 
       service.findOne.mockResolvedValue(mockedBook);
 
-      const result = await controller.findOne('1');
+      const result = await controller.findOne(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+      );
 
-      expect(service.findOne).toHaveBeenCalledWith('1');
+      expect(service.findOne).toHaveBeenCalledWith(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+      );
       expect(result).toBe(mockedBook);
+    });
+
+    it('should throw NotFoundException', async () => {
+      service.findOne.mockRejectedValue(new NotFoundException());
+
+      await expect(
+        controller.findOne('2288421b-3de3-4431-8f41-145766da4f3b'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('updateBook', () => {
     it('should call updateBook from service', async () => {
-      const dto = { title: 'Test' };
+      const dto = { title: 'Test - updated' };
+      const updatedBook = createBookEntity();
 
-      service.updateBook.mockResolvedValue({ id: '1', title: 'Test' } as any);
+      service.updateBook.mockResolvedValue(updatedBook);
 
-      const result = await controller.updateBook('1', dto as any);
+      const result = await controller.updateBook(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+        dto,
+      );
 
-      expect(service.updateBook).toHaveBeenCalledWith('1', dto);
-      expect(result).toEqual({ id: '1', title: 'Test' });
+      expect(service.updateBook).toHaveBeenCalledWith(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+        dto,
+      );
+      expect(result).toBe(updatedBook);
     });
   });
 
@@ -129,9 +134,11 @@ describe('BooksController', () => {
     it('should call deleteBook with the correct id', async () => {
       service.deleteBook.mockResolvedValue(undefined);
 
-      await controller.deleteBook('1');
+      await controller.deleteBook('2288421b-3de3-4431-8f41-145766da4f3b');
 
-      expect(service.deleteBook).toHaveBeenCalledWith('1');
+      expect(service.deleteBook).toHaveBeenCalledWith(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+      );
     });
   });
 });
