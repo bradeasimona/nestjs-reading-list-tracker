@@ -4,6 +4,7 @@ jest.mock('uuid', () => ({
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { BooksRepository } from '../../repositories/books.repository';
+import { AuthorsRepository } from '../../repositories/authors.repository';
 import { BooksService } from '../../services/books.service';
 import { CreateBookDto } from '../../dtos/book.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
@@ -12,9 +13,12 @@ import { BookEntity, BookStatus } from '../../entities/book.entity';
 describe('BooksService', () => {
   let service: BooksService;
   let repo: jest.Mocked<BooksRepository>;
+  let authorsRepo: jest.Mocked<AuthorsRepository>;
+  let dto: CreateBookDto;
 
   const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
     new BookEntity({
+      isbn: '9783161484104',
       id: '2288421b-3de3-4431-8f41-145766da4f3b',
       title: 'Test',
       authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
@@ -32,8 +36,13 @@ describe('BooksService', () => {
       createBook: jest.fn(),
       findAllBooks: jest.fn(),
       findBookById: jest.fn(),
+      findBookByIsbn: jest.fn(),
       updateBook: jest.fn(),
       deleteBook: jest.fn(),
+    } as any;
+
+    const mockAuthorsRepository: jest.Mocked<AuthorsRepository> = {
+      findAuthorById: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -43,23 +52,30 @@ describe('BooksService', () => {
           provide: BooksRepository,
           useValue: mockBooksRepository,
         },
+        {
+          provide: AuthorsRepository,
+          useValue: mockAuthorsRepository,
+        },
       ],
     }).compile();
 
     service = module.get<BooksService>(BooksService);
     repo = module.get(BooksRepository);
+    authorsRepo = module.get(AuthorsRepository);
+    dto = {
+      isbn: '9783161484104',
+      title: 'Test',
+      authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      totalPages: 300,
+    };
 
     jest.clearAllMocks();
   });
 
   describe('createBook', () => {
     it('should create a new book', async () => {
-      const dto: CreateBookDto = {
-        title: 'Test',
-        authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
-        totalPages: 300,
-      };
-
+      repo.findBookByIsbn.mockResolvedValue(null);
+      authorsRepo.findAuthorById.mockResolvedValue({} as any);
       repo.createBook.mockResolvedValue(undefined);
 
       await service.createBook(dto);
@@ -73,6 +89,27 @@ describe('BooksService', () => {
       expect(createdBook.title).toBe(dto.title);
       expect(createdBook.authorId).toBe(dto.authorId);
       expect(createdBook.totalPages).toBe(dto.totalPages);
+    });
+
+    it('should throw BadRequestException if ISBN already exists', async () => {
+      repo.findBookByIsbn.mockResolvedValue(createBookEntity());
+
+      await expect(service.createBook(dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(repo.createBook).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if author does not exist', async () => {
+      repo.findBookByIsbn.mockResolvedValue(null);
+      authorsRepo.findAuthorById.mockResolvedValue(null);
+
+      await expect(service.createBook(dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(repo.createBook).not.toHaveBeenCalled();
     });
   });
 

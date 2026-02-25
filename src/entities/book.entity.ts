@@ -5,6 +5,7 @@ export enum BookStatus {
   FINISHED = 'FINISHED',
 }
 export class BookEntity {
+  isbn!: string;
   id!: string;
   title!: string;
   authorId!: string;

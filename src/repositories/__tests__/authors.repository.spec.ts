@@ -94,10 +94,14 @@ describe('AuthorsRepository', () => {
 
       mockMapper.get.mockResolvedValue(author);
 
-      const result = await repository.findAuthorById('c1d033de-f3ca-4092-84f7-f5761da6f04d');
+      const result = await repository.findAuthorById(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      );
 
-      expect(mockMapper.get).toHaveBeenCalledWith({ id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d' });
+      expect(mockMapper.get).toHaveBeenCalledWith({
+        id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      });
       expect(result).toBe(author);
-    })
-  })
+    });
+  });
 });

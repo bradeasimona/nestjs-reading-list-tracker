@@ -26,6 +26,7 @@ describe('BooksRepository', () => {
 
   const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
     new BookEntity({
+      isbn: '9783161484104',
       id: '2288421b-3de3-4431-8f41-145766da4f3b',
       title: 'Test',
       authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
@@ -85,6 +86,23 @@ describe('BooksRepository', () => {
 
       expect(mockMapper.get).toHaveBeenCalledWith({
         id: '2288421b-3de3-4431-8f41-145766da4f3b',
+      });
+      expect(result).toBe(book);
+    });
+  });
+
+  describe('findBookByIsbn', () => {
+    it('should get a book by isbn', async () => {
+      const book = createBookEntity();
+
+      mockMapper.get.mockResolvedValue(book);
+
+      const result = await repository.findBookByIsbn(
+        '9783161484104',
+      );
+
+      expect(mockMapper.get).toHaveBeenCalledWith({
+        isbn: '9783161484104',
       });
       expect(result).toBe(book);
     });

@@ -8,5 +8,6 @@ import { CassandraModule } from '../modules/cassandra/cassandra.module';
   imports: [CassandraModule],
   controllers: [AuthorsController],
   providers: [AuthorsService, AuthorsRepository],
+  exports: [AuthorsRepository],
 })
 export class AuthorsModule {}

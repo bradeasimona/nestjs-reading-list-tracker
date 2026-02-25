@@ -4,16 +4,24 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { BooksRepository } from '../repositories/books.repository';
+import { AuthorsRepository } from '../repositories/authors.repository';
 import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
 import { BookEntity, BookStatus } from '../entities/book.entity';
 import { v4 } from 'uuid';
 
 @Injectable()
 export class BooksService {
-  constructor(private readonly repo: BooksRepository) {}
+  constructor(
+    private readonly repo: BooksRepository,
+    private readonly authorsRepo: AuthorsRepository,
+  ) {}
 
   async createBook(dto: CreateBookDto) {
+    await this.checkIfIsbnUnique(dto.isbn);
+    await this.checkIfAuthorExists(dto.authorId);
+
     const book = new BookEntity({
+      isbn: dto.isbn,
       id: v4(),
       title: dto.title,
       authorId: dto.authorId,
@@ -97,6 +105,22 @@ export class BooksService {
     }
 
     await this.repo.deleteBook(id);
+  }
+
+  private async checkIfIsbnUnique(isbn: string) {
+    const existingBook = await this.repo.findBookByIsbn(isbn);
+
+    if (existingBook) {
+      throw new BadRequestException('Book with this ISBN already exists');
+    }
+  }
+
+  private async checkIfAuthorExists(authorId: string) {
+    const author = await this.authorsRepo.findAuthorById(authorId);
+
+    if (!author) {
+      throw new BadRequestException('Author does not exist');
+    }
   }
 
   private validateDecreaseCurrentPage(
