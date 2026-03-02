@@ -33,7 +33,9 @@ export class BooksService {
       updatedAt: new Date(),
     });
 
-    return this.repo.createBook(book);
+    await this.repo.createBook(book);
+    
+    return book;
   }
 
   async findAllBooks() {

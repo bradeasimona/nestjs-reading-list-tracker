@@ -282,6 +282,8 @@ describe('BooksService', () => {
       expect(repo.deleteBook).toHaveBeenCalledWith(
         '2288421b-3de3-4431-8f41-145766da4f3b',
       );
+
+      expect(repo.deleteBook).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException if book does not exist', async () => {
@@ -290,6 +292,8 @@ describe('BooksService', () => {
       await expect(
         service.deleteBook('2288421b-3de3-4431-8f41-145766da4f3b'),
       ).rejects.toThrow(NotFoundException);
+
+      expect(repo.deleteBook).not.toHaveBeenCalled();
     });
   });
 });

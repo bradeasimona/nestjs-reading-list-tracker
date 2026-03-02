@@ -3,6 +3,7 @@ import { BookEntity, BookStatus } from '../book.entity';
 describe('BookEntity', () => {
   it('should create an instance with all properties', () => {
     const mockBookEntity = {
+      isbn: '9783161484104',
       id: '2288421b-3de3-4431-8f41-145766da4f3b',
       title: 'Test',
       authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',

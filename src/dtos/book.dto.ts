@@ -8,7 +8,7 @@ import {
   Matches,
   Min,
 } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 
 export class CreateBookDto {
   @ApiProperty()
@@ -33,7 +33,9 @@ export class CreateBookDto {
   totalPages: number;
 }
 
-export class UpdateBookDto extends PartialType(CreateBookDto) {
+export class UpdateBookDto extends PartialType(
+  OmitType(CreateBookDto, ['isbn'] as const),
+) {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsInt()

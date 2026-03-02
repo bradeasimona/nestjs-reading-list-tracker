@@ -7,7 +7,7 @@ import { AuthorsRepository } from '../../repositories/authors.repository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthorsService } from '../../services/authors.service';
 import { CreateAuthorDto } from '../../dtos/author.dto';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('AuthorService', () => {
   let service: AuthorsService;
@@ -21,6 +21,7 @@ describe('AuthorService', () => {
       firstName: 'John',
       lastName: 'Doe',
       dateOfBirth: new Date('1985-05-19'),
+      email: 'john.doe@test.com',
       createdAt: new Date(),
       updatedAt: new Date(),
       ...overrides,
@@ -31,6 +32,7 @@ describe('AuthorService', () => {
       createAuthor: jest.fn(),
       findAllAuthors: jest.fn(),
       findAuthorById: jest.fn(),
+      findAuthorByEmail: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -55,8 +57,10 @@ describe('AuthorService', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1985-05-19',
+        email: 'john.doe@test.com',
       };
-
+      
+      repo.findAuthorByEmail.mockResolvedValue(null);
       repo.createAuthor.mockResolvedValue(undefined);
 
       await service.createAuthor(dto);
@@ -69,6 +73,23 @@ describe('AuthorService', () => {
       expect(createdAuthor.id).toBe('mocked-uuid');
       expect(createdAuthor.firstName).toBe(dto.firstName);
       expect(createdAuthor.dateOfBirth).toBeInstanceOf(Date);
+    });
+
+    it('should throw BadRequestException if email already exists', async () => {
+      repo.findAuthorByEmail.mockResolvedValue(createAuthorEntity());
+
+      const dto: CreateAuthorDto = {
+        firstName: 'John',
+        lastName: 'Doe',
+        dateOfBirth: '1985-05-19',
+        email: 'john.doe@test.com',
+      };
+
+      await expect(service.createAuthor(dto)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(repo.createAuthor).not.toHaveBeenCalled();
     });
   });
 

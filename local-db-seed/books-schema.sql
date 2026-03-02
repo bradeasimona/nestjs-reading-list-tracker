@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS reading_list_tracker.books (
+CREATE TABLE IF NOT EXISTS reading_list_tracker.books ( 
   isbn TEXT,
   id UUID,
   title TEXT,
@@ -9,5 +9,8 @@ CREATE TABLE IF NOT EXISTS reading_list_tracker.books (
   status TEXT,
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
-  PRIMARY KEY (isbn)
+  PRIMARY KEY (id)
 );
+
+CREATE INDEX IF NOT EXISTS books_isbn_idx
+ON reading_list_tracker.books (isbn);

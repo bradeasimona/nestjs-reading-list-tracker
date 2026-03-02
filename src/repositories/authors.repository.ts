@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { Client, mapping } from 'cassandra-driver';
+import { Client, mapping, types } from 'cassandra-driver';
 import { CASSANDRA_CLIENT } from '../modules/cassandra/cassandra.constants';
 import { AuthorEntity } from '../entities/author.entity';
 import { checkCassandraConnection } from '../utils';
@@ -46,5 +46,29 @@ export class AuthorsRepository implements OnModuleInit {
 
   async findAuthorById(id: string) {
     return this.authorMapper.get({ id });
+  }
+
+  async findAuthorByEmail(email: string): Promise<AuthorEntity | null> {
+    const result = await this.cassandraClient.execute(
+      `SELECT * FROM reading_list_tracker.authors WHERE email = ?`,
+      [email],
+      { prepare: true },
+    );
+
+    if (result.rowLength === 0) return null;
+
+    return this.mapRowToAuthor(result.rows[0]);
+  }
+
+  private mapRowToAuthor(row: types.Row): AuthorEntity {
+    return new AuthorEntity({
+      id: row.get('id'),
+      firstName: row.get('first_name'),
+      lastName: row.get('last_name'),
+      dateOfBirth: row.get('date_of_birth'),
+      email: row.get('email'),
+      createdAt: row.get('created_at'),
+      updatedAt: row.get('updated_at'),
+    });
   }
 }

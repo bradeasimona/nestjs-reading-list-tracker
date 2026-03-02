@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { Client, mapping } from 'cassandra-driver';
+import { Client, mapping, types } from 'cassandra-driver';
 import { CASSANDRA_CLIENT } from '../modules/cassandra/cassandra.constants';
 import { BookEntity } from '../entities/book.entity';
 import { checkCassandraConnection } from '../utils';
@@ -40,10 +40,6 @@ export class BooksRepository implements OnModuleInit {
     return this.bookMapper.get({ id });
   }
 
-  async findBookByIsbn(isbn: string) {
-    return this.bookMapper.get({ isbn });
-  }
-
   async findAllBooks(): Promise<BookEntity[]> {
     const books = await this.bookMapper.findAll();
     return books.toArray();
@@ -58,5 +54,32 @@ export class BooksRepository implements OnModuleInit {
 
   async deleteBook(id: string) {
     await this.bookMapper.remove({ id });
+  }
+
+  async findBookByIsbn(isbn: string) {
+    const result = await this.cassandraClient.execute(
+      `SELECT * FROM reading_list_tracker.books WHERE isbn = ?`,
+      [isbn],
+      { prepare: true },
+    );
+
+    if (result.rowLength === 0) return null;
+
+    return this.mapRowToBook(result.rows[0]);
+  }
+
+  private mapRowToBook(row: types.Row): BookEntity {
+    return new BookEntity({
+      id: row.get('id'),
+      isbn: row.get('isbn'),
+      title: row.get('title'),
+      authorId: row.get('author_id'),
+      totalPages: row.get('total_pages'),
+      currentPage: row.get('current_page'),
+      progress: row.get('progress'),
+      status: row.get('status'),
+      createdAt: row.get('created_at'),
+      updatedAt: row.get('updated_at'),
+    });
   }
 }
