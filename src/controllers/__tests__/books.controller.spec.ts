@@ -16,6 +16,7 @@ describe('BooksController', () => {
 
   const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
     new BookEntity({
+      isbn: '9783161484104',
       id: '2288421b-3de3-4431-8f41-145766da4f3b',
       title: 'Test',
       authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
@@ -47,6 +48,7 @@ describe('BooksController', () => {
   describe('createBook', () => {
     it('should create a book and return the result', async () => {
       const dto: CreateBookDto = {
+        isbn: '9783161484104',
         title: 'Test',
         authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
         totalPages: 300,
@@ -82,6 +84,14 @@ describe('BooksController', () => {
 
       expect(service.findAllBooks).toHaveBeenCalled();
       expect(result).toBe(mockedBooks);
+    });
+
+    it('should return empty array if no books exist', async () => {
+      service.findAllBooks.mockResolvedValue([]);
+
+      const result = await controller.findAllBooks();
+
+      expect(result).toEqual([]);
     });
   });
 

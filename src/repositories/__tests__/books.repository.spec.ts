@@ -22,10 +22,12 @@ describe('BooksRepository', () => {
 
   const mockCassandraClient = {
     connect: jest.fn(),
+    execute: jest.fn(),
   };
 
   const createBookEntity = (overrides?: Partial<BookEntity>): BookEntity =>
     new BookEntity({
+      isbn: '9783161484104',
       id: '2288421b-3de3-4431-8f41-145766da4f3b',
       title: 'Test',
       authorId: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
@@ -131,6 +133,50 @@ describe('BooksRepository', () => {
       expect(mockMapper.remove).toHaveBeenCalledWith({
         id: '2288421b-3de3-4431-8f41-145766da4f3b',
       });
+    });
+  });
+
+  describe('findBookByIsbn', () => {
+    it('should return book id if isbn exists', async () => {
+      mockCassandraClient.execute.mockResolvedValue({
+        rowLength: 1,
+        rows: [
+          {
+            get: (column: string) => {
+              const data: any = {
+                id: '2288421b-3de3-4431-8f41-145766da4f3b',
+                isbn: '9783161484104',
+                title: 'Test',
+                author_id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+                total_pages: 100,
+                current_page: 0,
+                progress: 0,
+                status: BookStatus.NOT_STARTED,
+                created_at: new Date(),
+                updated_at: new Date(),
+              };
+              return data[column];
+            },
+          },
+        ],
+      });
+
+      const result = await repository.findBookByIsbn('9783161484104');
+
+      expect(mockCassandraClient.execute).toHaveBeenCalled();
+      expect(result).toBeInstanceOf(BookEntity);
+      expect(result?.isbn).toBe('9783161484104');
+    });
+
+    it('should return null if isbn does not exist', async () => {
+      mockCassandraClient.execute.mockResolvedValue({
+        rowLength: 0,
+        rows: [],
+      });
+
+      const result = await repository.findBookByIsbn('9783161484104');
+
+      expect(result).toBeNull();
     });
   });
 });

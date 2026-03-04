@@ -3,6 +3,7 @@ export class AuthorEntity {
   firstName!: string;
   lastName!: string;
   dateOfBirth!: Date;
+  email!: string;
   createdAt!: Date;
   updatedAt!: Date;
 

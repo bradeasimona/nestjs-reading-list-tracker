@@ -7,6 +7,7 @@ describe('AuthorEntity', () => {
       firstName: 'John',
       lastName: 'Doe',
       dateOfBirth: new Date('1985-05-19'),
+      email: 'john.doe@test.com',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
