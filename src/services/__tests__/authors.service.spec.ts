@@ -33,6 +33,7 @@ describe('AuthorService', () => {
       findAllAuthors: jest.fn(),
       findAuthorById: jest.fn(),
       findAuthorByEmail: jest.fn(),
+      updateAuthor: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -136,6 +137,91 @@ describe('AuthorService', () => {
       await expect(
         service.findAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateAuthor', () => {
+    it('should update an existing author', async () => {
+      const existingAuthor = createAuthorEntity();
+      const updatedDetails = {
+        firstName: 'Jane',
+        email: 'jane.doe@test.com',
+      };
+
+      repo.findAuthorById.mockResolvedValueOnce(existingAuthor);
+      repo.findAuthorByEmail.mockResolvedValueOnce(null);
+      repo.updateAuthor.mockResolvedValueOnce(undefined);
+
+      const result = await service.updateAuthor(existingAuthor.id, updatedDetails);
+
+      expect(repo.updateAuthor).toHaveBeenCalledWith(existingAuthor.id, expect.objectContaining(updatedDetails));
+      expect(result).toBeInstanceOf(AuthorEntity);
+      expect(result.firstName).toBe(updatedDetails.firstName);
+      expect(result.email).toBe(updatedDetails.email);
+    });
+
+    it('should update dateOfBirth correctly', async () => {
+      const existingDateOfBirth = createAuthorEntity({
+        dateOfBirth: new Date('1985-05-19'),
+      });
+
+      repo.findAuthorById.mockResolvedValue(existingDateOfBirth);
+      repo.updateAuthor.mockResolvedValue(undefined);
+
+      const newDate = '1990-10-10';
+
+      const result = await service.updateAuthor(existingDateOfBirth.id, {
+        dateOfBirth: newDate,
+      });
+
+      expect(repo.updateAuthor).toHaveBeenCalledWith(
+        existingDateOfBirth.id,
+        expect.objectContaining({
+          dateOfBirth: new Date(newDate),
+        }),
+      );
+
+      expect(result.dateOfBirth).toEqual(new Date(newDate));
+    });
+
+    it('should ignore undefined values in update payload', async () => {
+      const existingAuthor = createAuthorEntity();
+
+      repo.findAuthorById.mockResolvedValue(existingAuthor);
+      repo.updateAuthor.mockResolvedValue(undefined);
+
+      const result = await service.updateAuthor(existingAuthor.id, {
+        firstName: undefined,
+      });
+
+      expect(repo.updateAuthor).toHaveBeenCalledWith(
+        existingAuthor.id,
+        expect.not.objectContaining({
+          firstName: undefined,
+        }),
+      );
+
+      expect(result.firstName).toBe(existingAuthor.firstName);
+    });
+
+    it('should throw NotFoundException if author to update is not found', async () => {
+      repo.findAuthorById.mockResolvedValueOnce(null);
+
+      await expect(
+        service.updateAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d', { firstName: 'Jane' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException if new email is already in use', async () => {
+      const existingAuthor = createAuthorEntity();
+      const anotherAuthorWithSameEmail = createAuthorEntity({ id: 'd2d033de-f3ca-4092-84f7-f5761da6f04d' });
+
+      repo.findAuthorById.mockResolvedValueOnce(existingAuthor);
+      repo.findAuthorByEmail.mockResolvedValueOnce(anotherAuthorWithSameEmail);
+
+      await expect(
+        service.updateAuthor(existingAuthor.id, { email: 'jane.doe@test.com' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

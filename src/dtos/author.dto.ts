@@ -1,5 +1,5 @@
-import { IsDateString, IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateAuthorDto {
   @ApiProperty()
@@ -19,4 +19,10 @@ export class CreateAuthorDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+}
+
+export class UpdateAuthorDto extends PartialType(CreateAuthorDto) {
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }

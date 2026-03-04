@@ -16,6 +16,7 @@ describe('AuthorsRepository', () => {
     insert: jest.fn(),
     findAll: jest.fn(),
     get: jest.fn(),
+    update: jest.fn(),
   };
 
   const mockCassandraClient = {
@@ -147,4 +148,27 @@ describe('AuthorsRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('updateAuthor', () => {
+    it('should update an author', async () => {
+      const update = {
+        firstName: "Joe",
+        email: "joe.doe@etest.com"
+      }
+
+      mockMapper.update = jest.fn().mockResolvedValue(undefined);
+
+      await repository.updateAuthor(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+        update,
+      )
+
+      expect(mockMapper.update).toHaveBeenCalledWith({
+        id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+        ...update
+      })
+
+      expect(mockMapper.update).toHaveBeenCalledTimes(1);
+    })
+  })
 });
