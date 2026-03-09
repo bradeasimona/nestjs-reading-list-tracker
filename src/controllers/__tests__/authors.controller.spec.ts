@@ -172,4 +172,17 @@ describe('AuthorsController', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+
+  describe('deleteAuthor', () => {
+    it('should call deleteAuthor with the correct id', async () => {
+      service.deleteAuthor.mockResolvedValue(undefined);
+
+      await controller.deleteAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d');
+
+      expect(service.deleteAuthor).toHaveBeenCalledWith(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      );
+    });
+  });
 });

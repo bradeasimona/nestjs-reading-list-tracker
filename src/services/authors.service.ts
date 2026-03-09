@@ -1,11 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AuthorsRepository } from '../repositories/authors.repository';
+import { BooksRepository } from '../repositories/books.repository';
 import { CreateAuthorDto, UpdateAuthorDto } from '../dtos/author.dto';
 import { AuthorEntity } from '../entities/author.entity';
 import { v4 } from 'uuid';
 @Injectable()
 export class AuthorsService {
-  constructor(private readonly repo: AuthorsRepository) {}
+  constructor(
+    private readonly repo: AuthorsRepository,
+    private readonly booksRepo: BooksRepository,
+  ) {}
 
   async createAuthor(dto: CreateAuthorDto) {
     await this.checkIfEmailUnique(dto.email);
@@ -20,7 +24,9 @@ export class AuthorsService {
       updatedAt: new Date(),
     });
 
-    return this.repo.createAuthor(author);
+    await this.repo.createAuthor(author);
+    
+    return author;
   }
 
   async findAllAuthors() {
@@ -56,6 +62,21 @@ export class AuthorsService {
     });
   }
 
+  async deleteAuthor(id: string) {
+    const existingAuthor = await this.repo.findAuthorById(id);
+
+    if (!existingAuthor) {
+      throw new NotFoundException('Author not found');
+    }
+
+    const books = await this.booksRepo.findBooksByAuthorId(id);
+
+    for (const book of books) {
+      await this.booksRepo.deleteBook(book.id);
+    }
+
+    await this.repo.deleteAuthor(id);
+  }
 
   private async checkIfEmailUnique(email: string) {
     const existingEmail = await this.repo.findAuthorByEmail(email);

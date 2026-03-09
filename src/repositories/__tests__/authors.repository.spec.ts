@@ -17,6 +17,7 @@ describe('AuthorsRepository', () => {
     findAll: jest.fn(),
     get: jest.fn(),
     update: jest.fn(),
+    remove: jest.fn(),
   };
 
   const mockCassandraClient = {
@@ -171,4 +172,14 @@ describe('AuthorsRepository', () => {
       expect(mockMapper.update).toHaveBeenCalledTimes(1);
     })
   })
+
+  describe('deleteAuthor', () => {
+    it('should delete an author', async () => {
+      await repository.deleteAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d');
+
+      expect(mockMapper.remove).toHaveBeenCalledWith({
+        id: 'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      });
+    });
+  });
 });

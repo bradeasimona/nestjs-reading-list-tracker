@@ -67,6 +67,10 @@ export class AuthorsRepository implements OnModuleInit {
     });
   }
 
+  async deleteAuthor(id: string) {
+    await this.authorMapper.remove({ id });
+  }
+
   private mapRowToAuthor(row: types.Row): AuthorEntity {
     return new AuthorEntity({
       id: row.get('id'),

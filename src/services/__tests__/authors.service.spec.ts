@@ -4,6 +4,7 @@ jest.mock('uuid', () => ({
 
 import { AuthorEntity } from '../../entities/author.entity';
 import { AuthorsRepository } from '../../repositories/authors.repository';
+import { BooksRepository } from '../../repositories/books.repository';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthorsService } from '../../services/authors.service';
 import { CreateAuthorDto } from '../../dtos/author.dto';
@@ -12,6 +13,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 describe('AuthorService', () => {
   let service: AuthorsService;
   let repo: jest.Mocked<AuthorsRepository>;
+  let booksRepo: jest.Mocked<BooksRepository>;
 
   const createAuthorEntity = (
     overrides?: Partial<AuthorEntity>,
@@ -34,6 +36,13 @@ describe('AuthorService', () => {
       findAuthorById: jest.fn(),
       findAuthorByEmail: jest.fn(),
       updateAuthor: jest.fn(),
+      deleteAuthor: jest.fn(),
+    } as any;
+
+    const mockBooksRepository: jest.Mocked<BooksRepository> = {
+      findBookById: jest.fn(),
+      findBooksByAuthorId: jest.fn(),
+      deleteBook: jest.fn(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -43,11 +52,16 @@ describe('AuthorService', () => {
           provide: AuthorsRepository,
           useValue: mockAuthorsRepository,
         },
+        {
+          provide: BooksRepository,
+          useValue: mockBooksRepository,
+        },
       ],
     }).compile();
 
     service = module.get<AuthorsService>(AuthorsService);
     repo = module.get(AuthorsRepository);
+    booksRepo = module.get(BooksRepository);
 
     jest.clearAllMocks();
   });
@@ -222,6 +236,55 @@ describe('AuthorService', () => {
       await expect(
         service.updateAuthor(existingAuthor.id, { email: 'jane.doe@test.com' }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('deleteAuthor', () => {
+    it('should throw NotFoundException if author does not exist', async () => {
+      repo.findAuthorById.mockResolvedValueOnce(null);
+
+      await expect(
+        service.deleteAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d'),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(repo.deleteAuthor).not.toHaveBeenCalled();
+    });
+
+    it('should delete all books of the author and then delete the author', async () => {
+      const author = createAuthorEntity();
+
+      const books = [
+        { id: '2288421b-3de3-4431-8f41-145766da4f3b' },
+        { id: '7288421b-3de3-4431-8f41-145766da4f3b' },
+      ] as any;
+
+      repo.findAuthorById.mockResolvedValueOnce(author);
+      booksRepo.findBooksByAuthorId.mockResolvedValueOnce(books);
+      booksRepo.deleteBook.mockResolvedValue(undefined);
+      repo.deleteAuthor.mockResolvedValue(undefined);
+
+      await service.deleteAuthor(author.id);
+
+      expect(booksRepo.findBooksByAuthorId).toHaveBeenCalledWith(author.id);
+
+      expect(booksRepo.deleteBook).toHaveBeenCalledTimes(2);
+      expect(booksRepo.deleteBook).toHaveBeenCalledWith('2288421b-3de3-4431-8f41-145766da4f3b');
+      expect(booksRepo.deleteBook).toHaveBeenCalledWith('7288421b-3de3-4431-8f41-145766da4f3b');
+
+      expect(repo.deleteAuthor).toHaveBeenCalledWith(author.id);
+    });
+
+    it('should delete author if no books exist', async () => {
+      const author = createAuthorEntity();
+
+      repo.findAuthorById.mockResolvedValueOnce(author);
+      booksRepo.findBooksByAuthorId.mockResolvedValueOnce([]);
+      repo.deleteAuthor.mockResolvedValueOnce(undefined);
+
+      await service.deleteAuthor(author.id);
+
+      expect(booksRepo.deleteBook).not.toHaveBeenCalled();
+      expect(repo.deleteAuthor).toHaveBeenCalledWith(author.id);
     });
   });
 });

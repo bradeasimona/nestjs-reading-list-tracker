@@ -179,4 +179,75 @@ describe('BooksRepository', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('findBooksByAuthorId', () => {
+    it('should return books for given authorId', async () => {
+      const authorId = 'c1d033de-f3ca-4092-84f7-f5761da6f04d';
+
+      mockCassandraClient.execute.mockResolvedValue({
+        rowLength: 2,
+        rows: [
+          {
+            get: (column: string) => {
+              const data: any = {
+                id: '1',
+                isbn: '9783161484104',
+                title: 'Book 1',
+                author_id: authorId,
+                total_pages: 100,
+                current_page: 10,
+                progress: 10,
+                status: BookStatus.NOT_STARTED,
+                created_at: new Date(),
+                updated_at: new Date(),
+              };
+              return data[column];
+            },
+          },
+          {
+            get: (column: string) => {
+              const data: any = {
+                id: '2',
+                isbn: '9783161484105',
+                title: 'Book 2',
+                author_id: authorId,
+                total_pages: 200,
+                current_page: 20,
+                progress: 10,
+                status: BookStatus.NOT_STARTED,
+                created_at: new Date(),
+                updated_at: new Date(),
+              };
+              return data[column];
+            },
+          },
+        ],
+      });
+
+      const result = await repository.findBooksByAuthorId(authorId);
+
+      expect(mockCassandraClient.execute).toHaveBeenCalledWith(
+        `SELECT * FROM reading_list_tracker.books WHERE author_id = ?`,
+        [authorId],
+        { prepare: true },
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeInstanceOf(BookEntity);
+      expect(result[0].authorId).toBe(authorId);
+    });
+
+    it('should return empty array if author has no books', async () => {
+      const authorId = 'c1d033de-f3ca-4092-84f7-f5761da6f04d';
+
+      mockCassandraClient.execute.mockResolvedValue({
+        rowLength: 0,
+        rows: [],
+      });
+
+      const result = await repository.findBooksByAuthorId(authorId);
+
+      expect(result).toEqual([]);
+    });
+  });
 });
