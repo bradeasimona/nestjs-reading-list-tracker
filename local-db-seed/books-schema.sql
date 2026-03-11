@@ -14,3 +14,6 @@ CREATE TABLE IF NOT EXISTS reading_list_tracker.books (
 
 CREATE INDEX IF NOT EXISTS books_isbn_idx
 ON reading_list_tracker.books (isbn);
+
+CREATE INDEX IF NOT EXISTS books_author_id_idx
+ON reading_list_tracker.books (author_id);

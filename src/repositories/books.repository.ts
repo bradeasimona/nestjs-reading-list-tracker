@@ -68,6 +68,18 @@ export class BooksRepository implements OnModuleInit {
     return this.mapRowToBook(result.rows[0]);
   }
 
+  async findBooksByAuthorId(authorId: string) {
+    const result = await this.cassandraClient.execute(
+      `SELECT * FROM reading_list_tracker.books WHERE author_id = ?`,
+      [authorId],
+      { prepare: true },
+    );
+
+    if (result.rowLength === 0) return [];
+
+    return result.rows.map((row) => this.mapRowToBook(row));
+  }
+
   private mapRowToBook(row: types.Row): BookEntity {
     return new BookEntity({
       id: row.get('id'),

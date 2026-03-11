@@ -1,16 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AuthorsRepository } from '../repositories/authors.repository';
-import { CreateAuthorDto } from '../dtos/author.dto';
+import { BooksRepository } from '../repositories/books.repository';
+import { CreateAuthorDto, UpdateAuthorDto } from '../dtos/author.dto';
 import { AuthorEntity } from '../entities/author.entity';
 import { v4 } from 'uuid';
-
 @Injectable()
 export class AuthorsService {
-  constructor(private readonly repo: AuthorsRepository) {}
+  constructor(
+    private readonly repo: AuthorsRepository,
+    private readonly booksRepo: BooksRepository,
+  ) {}
 
   async createAuthor(dto: CreateAuthorDto) {
     await this.checkIfEmailUnique(dto.email);
-    
+
     const author = new AuthorEntity({
       id: v4(),
       firstName: dto.firstName,
@@ -21,7 +24,9 @@ export class AuthorsService {
       updatedAt: new Date(),
     });
 
-    return this.repo.createAuthor(author);
+    await this.repo.createAuthor(author);
+    
+    return author;
   }
 
   async findAllAuthors() {
@@ -36,11 +41,66 @@ export class AuthorsService {
     return author;
   }
 
+  async updateAuthor(id: string, dto: UpdateAuthorDto) {
+    const existingAuthor = await this.repo.findAuthorById(id);
+
+    if (!existingAuthor) {
+      throw new NotFoundException('Author not found');
+    }
+
+    if (dto.email && dto.email !== existingAuthor.email) {
+      await this.checkIfEmailUnique(dto.email);
+    }
+
+    const updatedAuthorDetails = this.mapUpdateAuthorDtoToEntity(dto);
+
+    await this.repo.updateAuthor(id, updatedAuthorDetails);
+
+    return new AuthorEntity({
+      ...existingAuthor,
+      ...updatedAuthorDetails,
+    });
+  }
+
+  async deleteAuthor(id: string) {
+    const existingAuthor = await this.repo.findAuthorById(id);
+
+    if (!existingAuthor) {
+      throw new NotFoundException('Author not found');
+    }
+
+    const books = await this.booksRepo.findBooksByAuthorId(id);
+
+    for (const book of books) {
+      await this.booksRepo.deleteBook(book.id);
+    }
+
+    await this.repo.deleteAuthor(id);
+  }
+
   private async checkIfEmailUnique(email: string) {
     const existingEmail = await this.repo.findAuthorByEmail(email);
 
     if (existingEmail) {
       throw new BadRequestException('Author with this email already exists');
     }
+  }
+
+  private mapUpdateAuthorDtoToEntity( dto: UpdateAuthorDto ): Partial<AuthorEntity> {
+    const update: Partial<AuthorEntity> = {
+      updatedAt: new Date(),
+    };
+
+    Object.entries(dto).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (key === 'dateOfBirth') {
+          update.dateOfBirth = new Date(value as string);
+        } else {
+          (update as any)[key] = value;
+        }
+      }
+    });
+
+    return update;
   }
 }

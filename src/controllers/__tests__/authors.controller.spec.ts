@@ -22,6 +22,7 @@ describe('AuthorsController', () => {
       firstName: 'John',
       lastName: 'Doe',
       dateOfBirth: new Date('1985-05-19'),
+      email: 'john.doe@test.com',
       createdAt: new Date(),
       updatedAt: new Date(),
       ...overrides,
@@ -49,6 +50,7 @@ describe('AuthorsController', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1985-05-19',
+        email: 'john.doe@test.com'
       };
 
       const mockedResult = createAuthorEntity();
@@ -122,6 +124,65 @@ describe('AuthorsController', () => {
       await expect(
         controller.findAuthor('l8d033de-f3ca-4092-84f7-f5761da6f04d'),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateAuthor', () => {
+    it('should update an author and return result', async () => {
+      const dto = {
+        firstName: 'Joe',
+        email: 'joe.doe@test.com'
+      };
+
+      const updatedAuthor = createAuthorEntity();
+
+      service.updateAuthor.mockResolvedValue(updatedAuthor);
+
+      const result = await controller.updateAuthor(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+        dto,
+      );
+
+      expect(service.updateAuthor).toHaveBeenCalledWith(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+        dto,
+      );
+      expect(result).toBe(updatedAuthor);
+    });
+
+    it('should throw NotFoundException', async () => {
+      service.updateAuthor.mockRejectedValue(new NotFoundException());
+
+      await expect (
+        controller.updateAuthor(
+          'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+          {} as any
+        )
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException', async () => {
+      service.updateAuthor.mockRejectedValue(new BadRequestException());
+
+      await expect(
+        controller.updateAuthor(
+          'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+          {} as any
+        )
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+
+  describe('deleteAuthor', () => {
+    it('should call deleteAuthor with the correct id', async () => {
+      service.deleteAuthor.mockResolvedValue(undefined);
+
+      await controller.deleteAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d');
+
+      expect(service.deleteAuthor).toHaveBeenCalledWith(
+        'c1d033de-f3ca-4092-84f7-f5761da6f04d',
+      );
     });
   });
 });

@@ -6,9 +6,11 @@ import {
   Post,
   Get,
   Param,
+  Patch,
+  Delete
 } from '@nestjs/common';
 import { AuthorsService } from '../services/authors.service';
-import { CreateAuthorDto } from '../dtos/author.dto';
+import { CreateAuthorDto, UpdateAuthorDto } from '../dtos/author.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Authors')
@@ -45,5 +47,21 @@ export class AuthorsController {
   })
   async findAuthor(@Param('id') id: string) {
     return this.service.findAuthor(id);
+  }
+
+  @Patch(':id')
+  @ApiResponse({ status: HttpStatus.OK, description: 'Author updated' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Author not found' })
+  async updateAuthor(@Param('id') id: string, @Body() dto: UpdateAuthorDto) {
+    return this.service.updateAuthor(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Author deleted' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Author not found' })
+  async deleteAuthor(@Param('id') id: string) {
+    await this.service.deleteAuthor(id);
   }
 }
