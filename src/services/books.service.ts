@@ -8,20 +8,26 @@ import { AuthorsRepository } from '../repositories/authors.repository';
 import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
 import { BookEntity, BookStatus } from '../entities/book.entity';
 import { v4 } from 'uuid';
-
+// import { IsbnService } from './isbn.service';
+import { IsbnGeneratorService } from './isbn-generator.service';
 @Injectable()
 export class BooksService {
   constructor(
     private readonly repo: BooksRepository,
     private readonly authorsRepo: AuthorsRepository,
+    // private readonly isbnService: IsbnService,
   ) {}
 
   async createBook(dto: CreateBookDto) {
-    await this.checkIfIsbnUnique(dto.isbn);
+    // await this.checkIfIsbnUnique(dto.isbn);
     await this.checkIfAuthorExists(dto.authorId);
 
+    // const isbn = this.isbnService.generateIsbn();
+    const isbnGenerator = IsbnGeneratorService.getInstance();
+    const isbn = isbnGenerator.generate();
+
     const book = new BookEntity({
-      isbn: dto.isbn,
+      isbn,
       id: v4(),
       title: dto.title,
       authorId: dto.authorId,
@@ -109,13 +115,13 @@ export class BooksService {
     await this.repo.deleteBook(id);
   }
 
-  private async checkIfIsbnUnique(isbn: string) {
-    const existingBook = await this.repo.findBookByIsbn(isbn);
+  // private async checkIfIsbnUnique(isbn: string) {
+  //   const existingBook = await this.repo.findBookByIsbn(isbn);
 
-    if (existingBook) {
-      throw new BadRequestException('Book with this ISBN already exists');
-    }
-  }
+  //   if (existingBook) {
+  //     throw new BadRequestException('Book with this ISBN already exists');
+  //   }
+  // }
 
   private async checkIfAuthorExists(authorId: string) {
     const author = await this.authorsRepo.findAuthorById(authorId);
