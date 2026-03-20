@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AuthorsRepository } from '../repositories/authors.repository';
 import { BooksRepository } from '../repositories/books.repository';
 import { CreateAuthorDto, UpdateAuthorDto } from '../dtos/author.dto';
@@ -25,7 +29,7 @@ export class AuthorsService {
     });
 
     await this.repo.createAuthor(author);
-    
+
     return author;
   }
 
@@ -86,7 +90,9 @@ export class AuthorsService {
     }
   }
 
-  private mapUpdateAuthorDtoToEntity( dto: UpdateAuthorDto ): Partial<AuthorEntity> {
+  private mapUpdateAuthorDtoToEntity(
+    dto: UpdateAuthorDto,
+  ): Partial<AuthorEntity> {
     const update: Partial<AuthorEntity> = {
       updatedAt: new Date(),
     };

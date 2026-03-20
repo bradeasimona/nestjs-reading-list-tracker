@@ -7,7 +7,7 @@ import {
   Get,
   Param,
   Patch,
-  Delete
+  Delete,
 } from '@nestjs/common';
 import { AuthorsService } from '../services/authors.service';
 import { CreateAuthorDto, UpdateAuthorDto } from '../dtos/author.dto';
@@ -52,7 +52,10 @@ export class AuthorsController {
   @Patch(':id')
   @ApiResponse({ status: HttpStatus.OK, description: 'Author updated' })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Author not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Author not found',
+  })
   async updateAuthor(@Param('id') id: string, @Body() dto: UpdateAuthorDto) {
     return this.service.updateAuthor(id, dto);
   }
@@ -60,7 +63,10 @@ export class AuthorsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Author deleted' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Author not found' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Author not found',
+  })
   async deleteAuthor(@Param('id') id: string) {
     await this.service.deleteAuthor(id);
   }

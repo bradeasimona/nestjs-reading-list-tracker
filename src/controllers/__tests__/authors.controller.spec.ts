@@ -50,7 +50,7 @@ describe('AuthorsController', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1985-05-19',
-        email: 'john.doe@test.com'
+        email: 'john.doe@test.com',
       };
 
       const mockedResult = createAuthorEntity();
@@ -131,7 +131,7 @@ describe('AuthorsController', () => {
     it('should update an author and return result', async () => {
       const dto = {
         firstName: 'Joe',
-        email: 'joe.doe@test.com'
+        email: 'joe.doe@test.com',
       };
 
       const updatedAuthor = createAuthorEntity();
@@ -153,11 +153,11 @@ describe('AuthorsController', () => {
     it('should throw NotFoundException', async () => {
       service.updateAuthor.mockRejectedValue(new NotFoundException());
 
-      await expect (
+      await expect(
         controller.updateAuthor(
           'c1d033de-f3ca-4092-84f7-f5761da6f04d',
-          {} as any
-        )
+          {} as any,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -167,12 +167,11 @@ describe('AuthorsController', () => {
       await expect(
         controller.updateAuthor(
           'c1d033de-f3ca-4092-84f7-f5761da6f04d',
-          {} as any
-        )
+          {} as any,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });
-
 
   describe('deleteAuthor', () => {
     it('should call deleteAuthor with the correct id', async () => {

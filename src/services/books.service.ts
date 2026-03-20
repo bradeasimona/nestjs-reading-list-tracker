@@ -8,21 +8,21 @@ import { AuthorsRepository } from '../repositories/authors.repository';
 import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
 import { BookEntity, BookStatus } from '../entities/book.entity';
 import { v4 } from 'uuid';
-// import { IsbnService } from './isbn.service';
+import { IsbnService } from './isbn.service';
 import { IsbnGeneratorService } from './isbn-generator.service';
 @Injectable()
 export class BooksService {
+  private readonly iterations = 1000000;
+
   constructor(
     private readonly repo: BooksRepository,
     private readonly authorsRepo: AuthorsRepository,
-    // private readonly isbnService: IsbnService,
+    private readonly isbnService: IsbnService,
   ) {}
 
   async createBook(dto: CreateBookDto) {
-    // await this.checkIfIsbnUnique(dto.isbn);
     await this.checkIfAuthorExists(dto.authorId);
 
-    // const isbn = this.isbnService.generateIsbn();
     const isbnGenerator = IsbnGeneratorService.getInstance();
     const isbn = isbnGenerator.generate();
 
@@ -40,7 +40,7 @@ export class BooksService {
     });
 
     await this.repo.createBook(book);
-    
+
     return book;
   }
 
@@ -115,14 +115,6 @@ export class BooksService {
     await this.repo.deleteBook(id);
   }
 
-  // private async checkIfIsbnUnique(isbn: string) {
-  //   const existingBook = await this.repo.findBookByIsbn(isbn);
-
-  //   if (existingBook) {
-  //     throw new BadRequestException('Book with this ISBN already exists');
-  //   }
-  // }
-
   private async checkIfAuthorExists(authorId: string) {
     const author = await this.authorsRepo.findAuthorById(authorId);
 
@@ -163,5 +155,37 @@ export class BooksService {
     }
 
     return { progress, status };
+  }
+
+  testManualSingleton() {
+    const generator = IsbnGeneratorService.getInstance();
+
+    const start = performance.now();
+
+    for (let i = 0; i < this.iterations; i++) {
+      generator.generate();
+    }
+
+    const end = performance.now();
+
+    return {
+      type: 'manual-singleton',
+      time: Number((end - start).toFixed(2)),
+    };
+  }
+
+  testNestService() {
+    const start = performance.now();
+
+    for (let i = 0; i < this.iterations; i++) {
+      this.isbnService.generateIsbn();
+    }
+
+    const end = performance.now();
+
+    return {
+      type: 'nest-service',
+      time: Number((end - start).toFixed(2)),
+    };
   }
 }

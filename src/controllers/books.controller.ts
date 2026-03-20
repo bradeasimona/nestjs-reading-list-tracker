@@ -8,6 +8,7 @@ import {
   Param,
   HttpStatus,
   HttpCode,
+  Version,
 } from '@nestjs/common';
 import { BooksService } from '../services/books.service';
 import { CreateBookDto, UpdateBookDto } from '../dtos/book.dto';
@@ -57,5 +58,17 @@ export class BooksController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Book not found' })
   async deleteBook(@Param('id') id: string) {
     await this.service.deleteBook(id);
+  }
+
+  @Version('2')
+  @Get('test/manual')
+  testManual() {
+    return this.service.testManualSingleton();
+  }
+
+  @Version('2')
+  @Get('test/nest')
+  testNest() {
+    return this.service.testNestService();
   }
 }
