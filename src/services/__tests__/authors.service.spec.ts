@@ -74,7 +74,7 @@ describe('AuthorService', () => {
         dateOfBirth: '1985-05-19',
         email: 'john.doe@test.com',
       };
-      
+
       repo.findAuthorByEmail.mockResolvedValue(null);
       repo.createAuthor.mockResolvedValue(undefined);
 
@@ -166,9 +166,15 @@ describe('AuthorService', () => {
       repo.findAuthorByEmail.mockResolvedValueOnce(null);
       repo.updateAuthor.mockResolvedValueOnce(undefined);
 
-      const result = await service.updateAuthor(existingAuthor.id, updatedDetails);
+      const result = await service.updateAuthor(
+        existingAuthor.id,
+        updatedDetails,
+      );
 
-      expect(repo.updateAuthor).toHaveBeenCalledWith(existingAuthor.id, expect.objectContaining(updatedDetails));
+      expect(repo.updateAuthor).toHaveBeenCalledWith(
+        existingAuthor.id,
+        expect.objectContaining(updatedDetails),
+      );
       expect(result).toBeInstanceOf(AuthorEntity);
       expect(result.firstName).toBe(updatedDetails.firstName);
       expect(result.email).toBe(updatedDetails.email);
@@ -222,13 +228,17 @@ describe('AuthorService', () => {
       repo.findAuthorById.mockResolvedValueOnce(null);
 
       await expect(
-        service.updateAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d', { firstName: 'Jane' }),
+        service.updateAuthor('c1d033de-f3ca-4092-84f7-f5761da6f04d', {
+          firstName: 'Jane',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException if new email is already in use', async () => {
       const existingAuthor = createAuthorEntity();
-      const anotherAuthorWithSameEmail = createAuthorEntity({ id: 'd2d033de-f3ca-4092-84f7-f5761da6f04d' });
+      const anotherAuthorWithSameEmail = createAuthorEntity({
+        id: 'd2d033de-f3ca-4092-84f7-f5761da6f04d',
+      });
 
       repo.findAuthorById.mockResolvedValueOnce(existingAuthor);
       repo.findAuthorByEmail.mockResolvedValueOnce(anotherAuthorWithSameEmail);
@@ -268,8 +278,12 @@ describe('AuthorService', () => {
       expect(booksRepo.findBooksByAuthorId).toHaveBeenCalledWith(author.id);
 
       expect(booksRepo.deleteBook).toHaveBeenCalledTimes(2);
-      expect(booksRepo.deleteBook).toHaveBeenCalledWith('2288421b-3de3-4431-8f41-145766da4f3b');
-      expect(booksRepo.deleteBook).toHaveBeenCalledWith('7288421b-3de3-4431-8f41-145766da4f3b');
+      expect(booksRepo.deleteBook).toHaveBeenCalledWith(
+        '2288421b-3de3-4431-8f41-145766da4f3b',
+      );
+      expect(booksRepo.deleteBook).toHaveBeenCalledWith(
+        '7288421b-3de3-4431-8f41-145766da4f3b',
+      );
 
       expect(repo.deleteAuthor).toHaveBeenCalledWith(author.id);
     });

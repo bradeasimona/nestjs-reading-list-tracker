@@ -1,4 +1,10 @@
-import { IsDateString, IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateAuthorDto {

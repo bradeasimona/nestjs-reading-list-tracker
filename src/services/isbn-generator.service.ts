@@ -1,5 +1,4 @@
 export class IsbnGeneratorService {
-
   private static instance: IsbnGeneratorService;
   private currentIsbn = 9780000000000;
 
