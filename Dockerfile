@@ -3,7 +3,7 @@ WORKDIR /usr/app
 ARG GITHUB_TOKEN
 ENV NODE_AUTH_TOKEN=${GITHUB_TOKEN}
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 #Copiem restul codului
 COPY . .
 #Build NestJS
